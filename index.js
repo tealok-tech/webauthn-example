@@ -52,9 +52,12 @@ function registerUser() {
 	  let clientDataJSON = credential.response.clientDataJSON;
 	  let rawId = credential.rawId;
 
-	  $.post(
-		'/register/finish/' + username,
-		JSON.stringify({
+      fetch( '/register/finish/' + username, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
 		  id: credential.id,
 		  rawId: bufferEncode(rawId),
 		  type: credential.type,
@@ -62,20 +65,17 @@ function registerUser() {
 			attestationObject: bufferEncode(attestationObject),
 			clientDataJSON: bufferEncode(clientDataJSON),
 		  },
-		}),
-		function (data) {
-		  return data
-		},
-		'json')
-	})
-	.then((success) => {
-	  alert("successfully registered " + username + "!")
-	  return
-	})
-	.catch((error) => {
-	  console.log(error)
-	  alert("failed to register " + username)
-	})
+		})
+	  })
+   })
+  .then((success) => {
+	    alert("successfully registered " + username + "!")
+    return
+  })
+  .catch((error) => {
+    console.log(error)
+    alert("failed to register " + username)
+  })
 }
 
 function loginUser() {
@@ -110,9 +110,12 @@ function loginUser() {
 	  let sig = assertion.response.signature;
 	  let userHandle = assertion.response.userHandle;
 
-	  $.post(
-		'/login/finish/' + username,
-		JSON.stringify({
+      fetch( '/login/finish/' + username, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
 		  id: assertion.id,
 		  rawId: bufferEncode(rawId),
 		  type: assertion.type,
@@ -122,11 +125,8 @@ function loginUser() {
 			signature: bufferEncode(sig),
 			userHandle: bufferEncode(userHandle),
 		  },
-		}),
-		function (data) {
-		  return data
-		},
-		'json')
+		})
+       })
 	})
 	.then((success) => {
 	  alert("successfully logged in " + username + "!")
