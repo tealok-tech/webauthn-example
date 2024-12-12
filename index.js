@@ -1,5 +1,4 @@
-$(document).ready(function () {
-
+document.addEventListener("DOMContentLoaded", function(event) {
   // check whether current browser supports WebAuthn
   if (!window.PublicKeyCredential) {
 	alert("Error: this browser does not support WebAuthn");
