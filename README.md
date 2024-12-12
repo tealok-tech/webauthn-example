@@ -1,2 +1,7 @@
 # webauthn-example
-Example project for github.com/go-webauthn/webauthn
+
+This project shows a simple example of how to write both a frontend (JavaScript) and backend (Go) system for using [Webauthn](https://webauthn.io/).
+
+The backend relies on [the go webauthn library](github.com/go-webauthn/webauthn).
+
+The frontend just uses vanilla JavaScript with no libraries.
