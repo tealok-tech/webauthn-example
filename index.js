@@ -20,8 +20,7 @@ function bufferEncode(value) {
 }
 
 function registerUser() {
-
-  username = $("#email").val()
+  const username = document.querySelector("#email").value;
   if (username === "") {
 	alert("Please enter a username");
 	return;
@@ -81,8 +80,7 @@ function registerUser() {
 }
 
 function loginUser() {
-
-  username = $("#email").val()
+  const username = document.querySelector("#email").value;
   if (username === "") {
 	alert("Please enter a username");
 	return;
