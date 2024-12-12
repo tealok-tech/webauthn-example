@@ -26,14 +26,13 @@ function registerUser() {
 	return;
   }
 
-  $.get(
-	'/register/begin/' + username,
-	null,
-	function (data) {
-	  return data
-	},
-	'json')
-	.then((credentialCreationOptions) => {
+  fetch('/register/begin/' + username)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error on begin register: ${response.status}`);
+      }
+      return response.json();
+    }).then((credentialCreationOptions) => {
 	  console.log(credentialCreationOptions)
 	  credentialCreationOptions.publicKey.challenge = bufferDecode(credentialCreationOptions.publicKey.challenge);
 	  credentialCreationOptions.publicKey.user.id = bufferDecode(credentialCreationOptions.publicKey.user.id);
@@ -86,14 +85,13 @@ function loginUser() {
 	return;
   }
 
-  $.get(
-	'/login/begin/' + username,
-	null,
-	function (data) {
-	  return data
-	},
-	'json')
-	.then((credentialRequestOptions) => {
+  fetch('/login/begin/' + username)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error on begin register: ${response.status}`);
+      }
+      return response.json();
+    }).then((credentialRequestOptions) => {
 	  console.log(credentialRequestOptions)
 	  credentialRequestOptions.publicKey.challenge = bufferDecode(credentialRequestOptions.publicKey.challenge);
 	  credentialRequestOptions.publicKey.allowCredentials.forEach(function (listItem) {
