@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	}
 	const login_form = document.getElementById("login");
 	login_form.addEventListener("submit", loginUser, true);
+	const register_form = document.getElementById("register");
+	register_form.addEventListener("submit", registerUser, true);
 });
 
 // Base64 to ArrayBuffer
@@ -21,67 +23,63 @@ function bufferEncode(value) {
 		.replace(/=/g, "");;
 }
 
-function registerUser() {
-	const username = document.querySelector("#email").value;
-	if (username === "") {
-		alert("Please enter a username");
-		return;
+async function registerUser(e) {
+	e.preventDefault();
+	const username = getRegisterUsername();
+
+	const response = await fetch('/register/begin/' + username);
+	if (!response.ok) {
+		throw new Error(`HTTP error on begin register: ${response.status}`);
+	}
+	const json = await response.json();
+	var credentialCreationOptions = json;
+	console.log(credentialCreationOptions);
+	credentialCreationOptions.publicKey.challenge = bufferDecode(credentialCreationOptions.publicKey.challenge);
+	credentialCreationOptions.publicKey.user.id = bufferDecode(credentialCreationOptions.publicKey.user.id);
+	if (credentialCreationOptions.publicKey.excludeCredentials) {
+		for (var i = 0; i < credentialCreationOptions.publicKey.excludeCredentials.length; i++) {
+			credentialCreationOptions.publicKey.excludeCredentials[i].id = bufferDecode(credentialCreationOptions.publicKey.excludeCredentials[i].id);
+		}
 	}
 
-	fetch('/register/begin/' + username)
-		.then(response => {
-			if (!response.ok) {
-				throw new Error(`HTTP error on begin register: ${response.status}`);
-			}
-			return response.json();
-		}).then((credentialCreationOptions) => {
-			console.log(credentialCreationOptions)
-			credentialCreationOptions.publicKey.challenge = bufferDecode(credentialCreationOptions.publicKey.challenge);
-			credentialCreationOptions.publicKey.user.id = bufferDecode(credentialCreationOptions.publicKey.user.id);
-			if (credentialCreationOptions.publicKey.excludeCredentials) {
-				for (var i = 0; i < credentialCreationOptions.publicKey.excludeCredentials.length; i++) {
-					credentialCreationOptions.publicKey.excludeCredentials[i].id = bufferDecode(credentialCreationOptions.publicKey.excludeCredentials[i].id);
-				}
-			}
+	const credential = await navigator.credentials.create({
+		publicKey: credentialCreationOptions.publicKey
+	});
+	console.log("Credential", credential);
+	let attestationObject = credential.response.attestationObject;
+	let clientDataJSON = credential.response.clientDataJSON;
+	let rawId = credential.rawId;
 
-			return navigator.credentials.create({
-				publicKey: credentialCreationOptions.publicKey
-			})
+	const response2 = await fetch( '/register/finish/' + username, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			id: credential.id,
+			rawId: bufferEncode(rawId),
+			type: credential.type,
+			response: {
+				attestationObject: bufferEncode(attestationObject),
+				clientDataJSON: bufferEncode(clientDataJSON),
+			},
 		})
-		.then((credential) => {
-			console.log(credential)
-			let attestationObject = credential.response.attestationObject;
-			let clientDataJSON = credential.response.clientDataJSON;
-			let rawId = credential.rawId;
-
-			fetch( '/register/finish/' + username, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					id: credential.id,
-					rawId: bufferEncode(rawId),
-					type: credential.type,
-					response: {
-						attestationObject: bufferEncode(attestationObject),
-						clientDataJSON: bufferEncode(clientDataJSON),
-					},
-				})
-			})
-	 })
-	.then((success) => {
-			alert("successfully registered " + username + "!")
-		return
-	})
-	.catch((error) => {
+	});
+	if (!response.ok) {
 		console.log(error)
-		alert("failed to register " + username)
-	})
+		alert("failed to register " + username);
+		return;
+	}
+	alert("successfully registered " + username + "!");
 }
 
 function getLoginUsername() {
 	var username_element = document.querySelector("#login input[name='username']");
+	return username_element.value;
+}
+
+function getRegisterUsername() {
+	var username_element = document.querySelector("#register input[name='username']");
 	return username_element.value;
 }
 
