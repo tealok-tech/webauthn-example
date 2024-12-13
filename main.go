@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -71,8 +72,14 @@ func Hello(w http.ResponseWriter, r *http.Request) {
 	} else {
 		user = session.user
 	}
-	w.Header().Set("Content-Type", "text/plain")
-	fmt.Fprintf(w, "Hello %s", user.Name)
+	t, err := template.ParseFiles("hello.tmpl")
+	if err != nil {
+		log.Println("Failed to load hello.tmpl", err)
+		http.Error(w, "Error loading hello.tmpl", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html")
+	t.Execute(w, user)
 }
 
 func BeginRegistration(w http.ResponseWriter, r *http.Request) {
