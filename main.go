@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -17,6 +18,12 @@ var (
 )
 
 func main() {
+	err := usersDB.ReadStore()
+	if err != nil {
+		log.Println("Failed to read user datastore", err)
+		os.Exit(1)
+	}
+
 	// Your initialization function
 	web, err = webauthn.New(&webauthn.Config{
 		RPDisplayName: "Foobar Corp.",          // Display Name for your site
@@ -149,6 +156,7 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.AddCredential(*credential)
+	usersDB.PutUser(user)
 
 	sessionDb.DeleteSession(cookie.Value)
 	w.Header().Set("Location", "/hello")
