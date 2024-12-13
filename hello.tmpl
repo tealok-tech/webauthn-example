@@ -1,5 +1,10 @@
 <html>
 <body>
-	<h1>Hello, {{.Name}}</h1>
+	<h1>Hello there, {{.Name}}</h1>
+	{{if .IsLoggedIn}}
+	<a href="/logout">Logout</a>
+	{{else}}
+	<a href="/">Login</a>
+	{{end}}
 </body>
 </html>

@@ -79,7 +79,20 @@ func Hello(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html")
-	t.Execute(w, user)
+	context := struct {
+		Name string
+		IsLoggedIn bool
+	}{
+		Name: user.Name,
+		IsLoggedIn: user != UserAnonymous,
+	}
+	log.Println("Rendering", context)
+	err = t.Execute(w, context)
+	if err != nil {
+		log.Println("Failed to execute hello.tmpl", err)
+		http.Error(w, "Error populating hello.tmpl", http.StatusInternalServerError)
+		return
+	}
 }
 
 func BeginRegistration(w http.ResponseWriter, r *http.Request) {
