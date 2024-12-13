@@ -1,62 +1,73 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
+	"github.com/google/uuid"
+	"log"
+	"net/http"
 	"sync"
-
-	"github.com/go-webauthn/webauthn/webauthn"
 )
 
-type sessiondb struct {
-	sessions map[string]*webauthn.SessionData
+const SESSION_COOKIE_NAME = "session"
+
+// A user's session which is used after authentication to continue to identify the user to the system.
+type SessionUser struct {
+	id   uuid.UUID
+	user *User
+}
+
+// The store of all sessions. This is just stored in memory of the application and will therefore invalidate all sessions on process restart.
+type Sessionstore struct {
 	mu       sync.RWMutex
+	sessions map[string]*SessionUser
+}
+var sessionStore *Sessionstore = &Sessionstore{
+	sessions: make(map[string]*SessionUser),
 }
 
-var sessionDb *sessiondb = &sessiondb{
-	sessions: make(map[string]*webauthn.SessionData),
+// Create a new store of sessions
+func CreateSessionstore() Sessionstore {
+	return Sessionstore{
+		sessions: make(map[string]*SessionUser),
+	}
 }
 
-// GetUser returns a *User by the user's username
-func (db *sessiondb) GetSession(sessionID string) (*webauthn.SessionData, error) {
-
+// Get session by session UUID
+func (db *Sessionstore) GetSession(r *http.Request) (*SessionUser, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
-	session, ok := db.sessions[sessionID]
-	if !ok {
-		return nil, fmt.Errorf("error getting session '%s': does not exist", sessionID)
+	cookie, err := r.Cookie(SESSION_COOKIE_NAME)
+	if err != nil {
+		return nil, err
 	}
-
+	session, ok := db.sessions[cookie.Value]
+	if !ok {
+		return nil, fmt.Errorf("error getting session '%s': does not exist", cookie.Value)
+	}
 	return session, nil
 }
 
-func (db *sessiondb) DeleteSession(sessionID string) {
-	db.mu.Lock()
-	defer db.mu.Unlock()
-
-	delete(db.sessions, sessionID)
-}
-
-// PutUser stores a new user by the user's username
-func (db *sessiondb) StartSession(data *webauthn.SessionData) string {
+// Start a new session for the given user and return the UUID as a string for storing in a cookie
+func (db *Sessionstore) StartSession(w http.ResponseWriter, u *User) string {
 
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
-	sessionId, _ := random(32)
-	db.sessions[sessionId] = data
-
-	return sessionId
-}
-
-func random(length int) (string, error) {
-	randomData := make([]byte, length)
-	_, err := rand.Read(randomData)
-	if err != nil {
-		return "", err
+	id := uuid.New()
+	db.sessions[id.String()] = &SessionUser{
+		id,
+		u,
 	}
+	log.Println("Started user session for", u.Name, id)
+	http.SetCookie(w, &http.Cookie{
+		Name: SESSION_COOKIE_NAME,
+		Value: id.String(),
+		Path: "/",
+		MaxAge: 60*60*24*14,
+		HttpOnly: false,
+		Secure: false,
+	})
 
-	return hex.EncodeToString(randomData), nil
+	return id.String()
 }

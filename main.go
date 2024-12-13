@@ -64,8 +64,15 @@ func jsonResponse(w http.ResponseWriter, d interface{}, c int) {
 }
 
 func Hello(w http.ResponseWriter, r *http.Request) {
+	session, _ := sessionStore.GetSession(r)
+	var user *User
+	if session == nil {
+		user = UserAnonymous
+	} else {
+		user = session.user
+	}
 	w.Header().Set("Content-Type", "text/plain")
-	fmt.Fprintf(w, "Hello anonymous")
+	fmt.Fprintf(w, "Hello %s", user.Name)
 }
 
 func BeginRegistration(w http.ResponseWriter, r *http.Request) {
@@ -106,7 +113,7 @@ func BeginRegistration(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:  "registration",
-		Value: sessionDb.StartSession(sessionData),
+		Value: authDb.StartSession(sessionData),
 		Path:  "/",
 	})
 
@@ -141,7 +148,7 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionData, err := sessionDb.GetSession(cookie.Value)
+	sessionData, err := authDb.GetSession(cookie.Value)
 	if err != nil {
 		log.Println("cookie:", err)
 		jsonResponse(w, err.Error(), http.StatusBadRequest)
@@ -158,7 +165,8 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 	user.AddCredential(*credential)
 	usersDB.PutUser(user)
 
-	sessionDb.DeleteSession(cookie.Value)
+	authDb.DeleteSession(cookie.Value)
+	sessionStore.StartSession(w, user)
 	w.Header().Set("Location", "/hello")
 
 	jsonResponse(w, "Registration Success", http.StatusOK)
@@ -197,7 +205,7 @@ func BeginLogin(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:  "authentication",
-		Value: sessionDb.StartSession(sessionData),
+		Value: authDb.StartSession(sessionData),
 		Path:  "/",
 	})
 
@@ -233,7 +241,7 @@ func FinishLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionData, err := sessionDb.GetSession(cookie.Value)
+	sessionData, err := authDb.GetSession(cookie.Value)
 	if err != nil {
 		log.Println("session:", err)
 		jsonResponse(w, err.Error(), http.StatusBadRequest)
@@ -256,7 +264,8 @@ func FinishLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionDb.DeleteSession(cookie.Value)
+	authDb.DeleteSession(cookie.Value)
+	sessionStore.StartSession(w, user)
 
 	// handle successful login
 	w.Header().Set("Location", "/hello")
