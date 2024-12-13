@@ -1,13 +1,47 @@
 document.addEventListener("DOMContentLoaded", function(event) {
+	console.log("DOM content loaded, getting started");
 	// check whether current browser supports WebAuthn
+	document.getElementById("js_loading").style.display = "none";
 	if (!window.PublicKeyCredential) {
-		alert("Error: this browser does not support WebAuthn");
-		return;
+		document.getElementById("no_webauthn").style.display = "block";
 	}
+	let p1 = new Promise((resolve, reject) => {
+		if (!PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+			document.getElementById("no_platform_auth_api").style.display = "block";
+			reject("IsUserVerifyingPlatformAuthenticatorAvailable is not available");
+		} else {
+			PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then((available) => {
+				console.log("isUserVerifyingPlatformAuthenticatorAvailable:", available);
+				if (!available) {
+					document.getElementById("no_platform_auth").style.display = "block";
+				}
+				resolve(available);
+			});
+		}
+	});
+	let p2 = new Promise((resolve, reject) => {
+		if (!PublicKeyCredential.isConditionalMediationAvailable) {
+			document.getElementById("no_conditional_mediation_api").style.display = "block";
+			reject("IsConditionalMediationAvailable is not available");
+		} else {
+			PublicKeyCredential.isConditionalMediationAvailable().then((available) => {
+				console.log("isConditionalMediationAvailable:", available);
+				if (!available) {
+					document.getElementById("no_conditional_mediation").style.display = "block";
+				}
+				resolve(available);
+			});
+		}
+	});
 	const login_form = document.getElementById("login");
 	login_form.addEventListener("submit", loginUser, true);
 	const register_form = document.getElementById("register");
 	register_form.addEventListener("submit", registerUser, true);
+	Promise.all([p1, p2]).then((values) => {
+		if(values[0] && values[1]) {
+			login_form.style.display = "block";
+		}
+	})
 });
 
 // Base64 to ArrayBuffer

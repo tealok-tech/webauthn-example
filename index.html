@@ -9,6 +9,31 @@
 </head>
 
 <body>
+	<div id="js_loading">
+		<h1>Loading...</h1>
+		<p>This page requires JavaScript to function since it's going to do some crypto work.</p>
+		<p>If you've got JavaScript disabled, you should enable it now.</p>
+	</div>
+	<div id="no_webauthn" style="display:none">
+		<h1>Sorry, no WebAuthN</h1>
+		<p>Looks like your browser does not support WebAuthN, which is required to do the cryptography work to log in to this website. This is pretty surprising since it's been available for years. You should either update your browser or use a major browser if you want to be able to use this website. We recommend <a href="https://www.mozilla.org/en-US/firefox/">Firefox</a>, but Chrome, Edge, or Safari should work too.</p>
+	</div>
+	<div id="no_platform_auth_api" style="display:none">
+		<h1>Sorry, no isUserVerifyingPlatformAuthenticator API</h1>
+		<p>Your browser doesn't support the isUserVerifyingPlatformAuthenticator API. This means we can't ask if yo have a user-verifying platform authenticator, which you'll need. This has been available since Chrome/Edge 67, Firefox 60, and Safari 13.</p>
+	</div>
+	<div id="no_conditional_mediation_api" style="display:none">
+		<h1>Sorry, no isConditionalMediationAvailable API</h1>
+		<p>Your browser doesn't support the isConditionalMediationAvailable API. This means we can't ask if you have conditional mediation available, which you'll need. This has been available since Chrome/Edge 108, Firefox 119, and Safari 16.</p>
+	</div>
+	<div id="no_platform_auth" style="display:none">
+		<h1>Sorry, no UserVerifyingPlatformAuthenticator</h1>
+		<p>Your browser does not support UserVerifyingPlatformAuthenticator. This is usually something like Touch ID, Face ID, Windows Hello, a fingerprint scanner on Android, or an integrated authenticator like <a href="https://bitwarden.com/help/integrated-authenticator/">Bitwarden</a>. You'll need to configure an authenticator for this browser before you can use this page.</p>
+	</div>
+	<div id="no_conditional_mediation" style="display:none">
+		<h1>Sorry, no UserVerifyingPlatformAuthenticator</h1>
+		<p>Your browser does not support UserVerifyingPlatformAuthenticator. This is usually something like Touch ID, Face ID, Windows Hello, a fingerprint scanner on Android, or an integrated authenticator like <a href="https://bitwarden.com/help/integrated-authenticator/">Bitwarden</a>. You'll need to configure an authenticator for this browser before you can use this page.</p>
+	</div>
 	<form id="login">
 		<label for="username">Username</label>
 		<input type="text" name="username" autocomplete="username webauthn" required>
