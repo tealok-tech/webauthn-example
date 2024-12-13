@@ -70,7 +70,7 @@ async function registerUser(e) {
 		alert("failed to register " + username);
 		return;
 	}
-	alert("successfully registered " + username + "!");
+	window.location.href = response2.headers.get("Location");
 }
 
 function getLoginUsername() {
@@ -136,7 +136,7 @@ async function loginUser(e) {
 	 });
 	const json2 = await response2.json();
 	console.log("Login finish", json2);
-	// window.location.href = "/hello";
+	window.location.href = response2.headers.get("Location");
 }
 
 function showRegisterForm() {

@@ -28,6 +28,8 @@ func main() {
 		log.Fatal("failed to create WebAuthn from config:", err)
 	}
 
+	http.HandleFunc("/hello", Hello)
+
 	http.HandleFunc("/register/begin/", BeginRegistration)
 	http.HandleFunc("/register/finish/", FinishRegistration)
 
@@ -52,6 +54,11 @@ func jsonResponse(w http.ResponseWriter, d interface{}, c int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(c)
 	fmt.Fprintf(w, "%s", dj)
+}
+
+func Hello(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	fmt.Fprintf(w, "Hello anonymous")
 }
 
 func BeginRegistration(w http.ResponseWriter, r *http.Request) {
@@ -144,6 +151,7 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 	user.AddCredential(*credential)
 
 	sessionDb.DeleteSession(cookie.Value)
+	w.Header().Set("Location", "/hello")
 
 	jsonResponse(w, "Registration Success", http.StatusOK)
 }
@@ -243,5 +251,6 @@ func FinishLogin(w http.ResponseWriter, r *http.Request) {
 	sessionDb.DeleteSession(cookie.Value)
 
 	// handle successful login
+	w.Header().Set("Location", "/hello")
 	jsonResponse(w, "Login Success", http.StatusOK)
 }
