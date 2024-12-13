@@ -38,11 +38,13 @@ func main() {
 
 	http.HandleFunc("/hello", Hello)
 
-	http.HandleFunc("/register/begin/", BeginRegistration)
-	http.HandleFunc("/register/finish/", FinishRegistration)
-
 	http.HandleFunc("/login/begin/", BeginLogin)
 	http.HandleFunc("/login/finish/", FinishLogin)
+
+	http.HandleFunc("/logout/", Logout)
+
+	http.HandleFunc("/register/begin/", BeginRegistration)
+	http.HandleFunc("/register/finish/", FinishRegistration)
 
 	http.Handle("/", http.FileServer(http.Dir("./")))
 
@@ -290,4 +292,14 @@ func FinishLogin(w http.ResponseWriter, r *http.Request) {
 	// handle successful login
 	w.Header().Set("Location", "/hello")
 	jsonResponse(w, "Login Success", http.StatusOK)
+}
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.NotFound(w, r)
+		return
+	}
+	sessionStore.EndSession(w, r)
+	w.Header().Set("Location", "/")
+	http.Redirect(w, r, "/", http.StatusFound)
 }

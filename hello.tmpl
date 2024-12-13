@@ -2,9 +2,11 @@
 <body>
 	<h1>Hello there, {{.Name}}</h1>
 	{{if .IsLoggedIn}}
-	<a href="/logout">Logout</a>
+		<form method="POST" action="/logout/">
+			<button type="submit">Logout</button>
+		</form>
 	{{else}}
-	<a href="/">Login</a>
+		<a href="/">Login</a>
 	{{end}}
 </body>
 </html>

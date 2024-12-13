@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 )
 
 const SESSION_COOKIE_NAME = "session"
@@ -30,6 +31,31 @@ func CreateSessionstore() Sessionstore {
 	return Sessionstore{
 		sessions: make(map[string]*SessionUser),
 	}
+}
+
+// Get session by session UUID
+func (db *Sessionstore) EndSession(w http.ResponseWriter, r *http.Request) error {
+	// Intentionally don't lock here because GetSession will lock for us
+	session, _ := db.GetSession(r)
+	if session == nil {
+		return nil
+	}
+	cookie, err := r.Cookie(SESSION_COOKIE_NAME)
+	if err != nil {
+		return err
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name: SESSION_COOKIE_NAME,
+		Value: "",
+		Path: "/",
+		Expires: time.Unix(0, 0),
+		HttpOnly: false,
+		Secure: false,
+	})
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	delete(db.sessions, cookie.Value)
+	return nil
 }
 
 // Get session by session UUID
