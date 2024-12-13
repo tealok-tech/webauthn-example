@@ -95,11 +95,18 @@ function loginUser(e) {
 
 	fetch('/login/begin/' + username)
 		.then(response => {
-			if (!response.ok) {
+			// 404 signals that the user doesn't exist
+			if (response.status == 404) {
+				showRegisterForm();
+				return;
+			} else if (!response.ok) {
 				throw new Error(`HTTP error on begin register: ${response.status}`);
 			}
 			return response.json();
 		}).then((credentialRequestOptions) => {
+			if (credentialRequestOptions === undefined) {
+				return;
+			}
 			console.log(credentialRequestOptions)
 			credentialRequestOptions.publicKey.challenge = bufferDecode(credentialRequestOptions.publicKey.challenge);
 			credentialRequestOptions.publicKey.allowCredentials.forEach(function (listItem) {
@@ -111,6 +118,9 @@ function loginUser(e) {
 			})
 		})
 		.then((assertion) => {
+			if (assertion === undefined) {
+				return;
+			}
 			console.log(assertion)
 			let authData = assertion.response.authenticatorData;
 			let clientDataJSON = assertion.response.clientDataJSON;
@@ -137,6 +147,7 @@ function loginUser(e) {
 			 })
 		})
 		.then((success) => {
+			if(!success) {return;}
 			alert("successfully logged in " + username + "!")
 			return
 		})
@@ -146,3 +157,11 @@ function loginUser(e) {
 		})
 }
 
+function showRegisterForm() {
+	console.log("Showing registration form");
+	document.getElementById("login").style.display = "none";
+	document.getElementById("register").style.display = "block";
+	const login_username = getLoginUsername();
+	const register_username = document.querySelector("#register input[name='username']");
+	register_username.value = login_username;
+}

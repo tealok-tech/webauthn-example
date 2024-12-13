@@ -12,9 +12,16 @@
 	<form id="login">
 		<label for="username">Username</label>
 		<input type="text" name="username" autocomplete="username webauthn" required>
-		<button type="submit">Login</button>
+		<button type="submit">Next</button>
 	</form>
-	<button onclick="registerUser()" style="display: none;">Register</button>
-</body>
 
+	<form id="register" style="display:none">
+		<label for="username">Username</label>
+		<input type="text" name="username" autocomplete="username webauthn" required>
+		<label for="username">Display Name</label>
+		<input type="text" name="displayname" autocomplete="name" required>
+		<button type="submit">Register</button>
+	</form>
+
+</body>
 </html>

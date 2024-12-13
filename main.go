@@ -167,7 +167,7 @@ func BeginLogin(w http.ResponseWriter, r *http.Request) {
 	// user doesn't exist
 	if err != nil {
 		log.Println(err)
-		jsonResponse(w, err.Error(), http.StatusBadRequest)
+		jsonResponse(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
