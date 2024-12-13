@@ -85,7 +85,7 @@ function getLoginUsername() {
 	return username_element.value;
 }
 
-function loginUser(e) {
+async function loginUser(e) {
 	e.preventDefault();
 	const username = getLoginUsername();
 	if (username === "") {
@@ -93,68 +93,52 @@ function loginUser(e) {
 		return;
 	}
 
-	fetch('/login/begin/' + username)
-		.then(response => {
-			// 404 signals that the user doesn't exist
-			if (response.status == 404) {
-				showRegisterForm();
-				return;
-			} else if (!response.ok) {
-				throw new Error(`HTTP error on begin register: ${response.status}`);
-			}
-			return response.json();
-		}).then((credentialRequestOptions) => {
-			if (credentialRequestOptions === undefined) {
-				return;
-			}
-			console.log(credentialRequestOptions)
-			credentialRequestOptions.publicKey.challenge = bufferDecode(credentialRequestOptions.publicKey.challenge);
-			credentialRequestOptions.publicKey.allowCredentials.forEach(function (listItem) {
-				listItem.id = bufferDecode(listItem.id)
-			});
+	const response = await fetch('/login/begin/' + username);
+	// 404 signals that the user doesn't exist
+	if (response.status == 404) {
+		showRegisterForm();
+		return;
+	} else if (!response.ok) {
+		throw new Error(`HTTP error on begin register: ${response.status}`);
+	}
+	const json = await response.json();
+	console.log("Login begin:", json);
+	const credentialRequestOptions = json;
+	credentialRequestOptions.publicKey.challenge = bufferDecode(credentialRequestOptions.publicKey.challenge);
+	credentialRequestOptions.publicKey.allowCredentials.forEach(function (listItem) {
+		listItem.id = bufferDecode(listItem.id)
+	});
 
-			return navigator.credentials.get({
-				publicKey: credentialRequestOptions.publicKey
-			})
-		})
-		.then((assertion) => {
-			if (assertion === undefined) {
-				return;
-			}
-			console.log(assertion)
-			let authData = assertion.response.authenticatorData;
-			let clientDataJSON = assertion.response.clientDataJSON;
-			let rawId = assertion.rawId;
-			let sig = assertion.response.signature;
-			let userHandle = assertion.response.userHandle;
+	var assertion = await navigator.credentials.get({
+		publicKey: credentialRequestOptions.publicKey
+	});
+	console.log("Assertion", assertion);
+	let authData = assertion.response.authenticatorData;
+	let clientDataJSON = assertion.response.clientDataJSON;
+	let rawId = assertion.rawId;
+	let sig = assertion.response.signature;
+	let userHandle = assertion.response.userHandle;
 
-			fetch( '/login/finish/' + username, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					id: assertion.id,
-					rawId: bufferEncode(rawId),
-					type: assertion.type,
-					response: {
-						authenticatorData: bufferEncode(authData),
-						clientDataJSON: bufferEncode(clientDataJSON),
-						signature: bufferEncode(sig),
-						userHandle: bufferEncode(userHandle),
-					},
-				})
-			 })
+	const response2 = await fetch( '/login/finish/' + username, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			id: assertion.id,
+			rawId: bufferEncode(rawId),
+			type: assertion.type,
+			response: {
+				authenticatorData: bufferEncode(authData),
+				clientDataJSON: bufferEncode(clientDataJSON),
+				signature: bufferEncode(sig),
+				userHandle: bufferEncode(userHandle),
+			},
 		})
-		.then((success) => {
-			if(!success) {return;}
-			alert("successfully logged in " + username + "!")
-			return
-		})
-		.catch((error) => {
-			console.log(error)
-			alert("failed to login " + username)
-		})
+	 });
+	const json2 = await response2.json();
+	console.log("Login finish", json2);
+	// window.location.href = "/hello";
 }
 
 function showRegisterForm() {
