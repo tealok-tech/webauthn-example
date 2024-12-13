@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 		alert("Error: this browser does not support WebAuthn");
 		return;
 	}
+	const login_form = document.getElementById("login");
+	login_form.addEventListener("submit", loginUser, true);
 });
 
 // Base64 to ArrayBuffer
@@ -78,8 +80,14 @@ function registerUser() {
 	})
 }
 
-function loginUser() {
-	const username = document.querySelector("#email").value;
+function getLoginUsername() {
+	var username_element = document.querySelector("#login input[name='username']");
+	return username_element.value;
+}
+
+function loginUser(e) {
+	e.preventDefault();
+	const username = getLoginUsername();
 	if (username === "") {
 		alert("Please enter a username");
 		return;

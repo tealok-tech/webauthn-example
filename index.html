@@ -9,14 +9,12 @@
 </head>
 
 <body>
-
-  Username:
-  <br>
-  <input type="text" name="username" id="email" placeholder="i.e. foo@bar.com">
-  <br>
-  <br>
+	<form id="login">
+		<label for="username">Username</label>
+  	<input type="text" name="username" autocomplete="username webauthn" required>
+  	<button type="submit">Login</button>
+	</form>
   <button onclick="registerUser()" style="display: none;">Register</button>
-  <button onclick="loginUser()">Login</button>
 </body>
 
 </html>
